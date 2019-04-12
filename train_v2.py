@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
-from gmf import GMFEngine
-from mlp import MLPEngine
-from neumf import NeuMFEngine
+from model.gmf import GMFEngine
+from model.mlp import MLPEngine
+from model.neumf import NeuMFEngine
 from data import SampleGenerator
 import os
 
@@ -38,16 +38,22 @@ sample_generator = SampleGenerator(ratings=tdc_record)
 evaluate_data = sample_generator.evaluate_data
 
 # Training Engine
-
 def train_model(model, config):
     engine = model(config)
+    best_hit = 0
     for epoch in range(config['num_epoch']):
         print('Epoch {} starts !'.format(epoch))
         print('-' * 80)
         train_loader = sample_generator.instance_a_train_loader(config['num_negative'], config['batch_size'])
         engine.train_an_epoch(train_loader, epoch_id=epoch)
         hit_ratio, ndcg = engine.evaluate(evaluate_data, epoch_id=epoch)
-        engine.save(config['alias'], epoch, hit_ratio, ndcg)
+        if epoch % 20 == 0:
+            engine.save(config['alias'], epoch, hit_ratio, ndcg)
+        elif (epoch == config['num_epoch'] - 1):
+            engine.save(config['alias'], epoch, hit_ratio, ndcg)
+        if hit_ratio > best_hit:
+            best_hit = hit_ratio
+            engine.save(config['alias'], epoch, hit_ratio, ndcg, backup=False)
 
 #setup configuration for GMF
 gmf_config = {'alias': 'gmf_factor8neg4-implict',
@@ -70,9 +76,6 @@ gmf_config = {'alias': 'gmf_factor8neg4-implict',
               'use_cuda': True,
               'device_id': 0,
               'model_dir':'checkpoints/{}_Epoch{}_HR{:.4f}_NDCG{:.4f}.model'}
-
-
-
 
 # Train GMF Model
 train_model(GMFEngine, gmf_config)

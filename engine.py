@@ -15,8 +15,8 @@ class Engine(object):
     def __init__(self, config):
         self.config = config  # model configuration
         self._metron = MetronAtK(top_k=10)
-        #self._writer = SummaryWriter(log_dir='runs/{}'.format(config['alias']))  # tensorboard writer
-        #self._writer.add_text('config', str(config), 0)
+        # self._writer = SummaryWriter(log_dir='runs/{}'.format(config['alias']))  # tensorboard writer
+        # self._writer.add_text('config', str(config), 0)
         self.opt = use_optimizer(self.model, config)
         # explicit feedback
         # self.crit = torch.nn.MSELoss()
@@ -44,9 +44,10 @@ class Engine(object):
             user, item, rating = batch[0], batch[1], batch[2]
             rating = rating.float()
             loss = self.train_single_batch(user, item, rating)
-            print('[Training Epoch {}] Batch {}, Loss {}'.format(epoch_id, batch_id, loss))
             total_loss += loss
-        #self._writer.add_scalar('model/loss', total_loss, epoch_id)
+            if epoch_id % 20 == 0:
+                print('[Training Epoch {}] Batch {}, Loss {}'.format(epoch_id, batch_id, loss))
+        # self._writer.add_scalar('model/loss', total_loss, epoch_id)
 
     def evaluate(self, evaluate_data, epoch_id):
         assert hasattr(self, 'model'), 'Please specify the exact model !'
@@ -75,12 +76,16 @@ class Engine(object):
                                  negative_items.data.view(-1).tolist(),
                                  negative_scores.data.view(-1).tolist()]
         hit_ratio, ndcg = self._metron.cal_hit_ratio(), self._metron.cal_ndcg()
-        #self._writer.add_scalar('performance/HR', hit_ratio, epoch_id)
-        #self._writer.add_scalar('performance/NDCG', ndcg, epoch_id)
-        print('[Evluating Epoch {}] HR = {:.4f}, NDCG = {:.4f}'.format(epoch_id, hit_ratio, ndcg))
+        # self._writer.add_scalar('performance/HR', hit_ratio, epoch_id)
+        # self._writer.add_scalar('performance/NDCG', ndcg, epoch_id)
+        if epoch_id % 20 == 0:
+            print('[Evaluating Epoch {}] HR = {:.4f}, NDCG = {:.4f}'.format(epoch_id, hit_ratio, ndcg))
         return hit_ratio, ndcg
 
-    def save(self, alias, epoch_id, hit_ratio, ndcg):
+    def save(self, alias, epoch_id, hit_ratio, ndcg, backup=True):
         assert hasattr(self, 'model'), 'Please specify the exact model !'
-        model_dir = self.config['model_dir'].format(alias, epoch_id, hit_ratio, ndcg)
+        if backup:
+            model_dir = self.config['model_dir'].format(alias, epoch_id, hit_ratio, ndcg)
+        else:
+            model_dir = self.config['model_dir']
         save_checkpoint(self.model, model_dir)

@@ -14,7 +14,6 @@ def resume_checkpoint(model, model_dir, device_id):
                             map_location=lambda storage, loc: storage.cuda(device=device_id))  # ensure all storage are on gpu
     model.load_state_dict(state_dict)
 
-
 # Hyper params
 def use_cuda(enabled, device_id=0):
     if enabled:
