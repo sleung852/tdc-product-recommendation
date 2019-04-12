@@ -52,6 +52,6 @@ class MetronAtK(object):
     def cal_ndcg(self):
         full, top_k = self._subjects, self._top_k
         top_k = full[full['rank']<=top_k]
-        test_in_top_k =top_k[top_k['test_item'] == top_k['item']]
+        test_in_top_k = top_k[top_k['test_item'] == top_k['item']]
         test_in_top_k['ndcg'] = test_in_top_k['rank'].apply(lambda x: math.log(2) / math.log(1 + x)) # the rank starts from 1
         return test_in_top_k['ndcg'].sum() * 1.0 / full['user'].nunique()
