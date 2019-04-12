@@ -1,5 +1,5 @@
 import torch
-from gmf import GMF
+from model.gmf import GMF
 from engine import Engine
 from utils import use_cuda, resume_checkpoint
 

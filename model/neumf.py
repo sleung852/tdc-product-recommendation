@@ -1,6 +1,6 @@
 import torch
-from gmf import GMF
-from mlp import MLP
+from model.gmf import GMF
+from model.mlp import MLP
 from engine import Engine
 from utils import use_cuda, resume_checkpoint
 
