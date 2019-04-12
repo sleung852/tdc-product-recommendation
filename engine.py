@@ -88,5 +88,5 @@ class Engine(object):
         if backup:
             model_dir = self.config['model_dir'].format(alias, epoch_id, hit_ratio, ndcg)
         else:
-            model_dir = 'gmf_factor8neg4_implict_{}_best.model'.format(alias)
+            model_dir = '{}_best.model'.format(alias)
         save_checkpoint(self.model, model_dir)
