@@ -63,7 +63,8 @@ class SampleGenerator:
         #tdc_record=pd.read_csv('user-item-oct-dec-2018-v2-modified.csv')
 
         tdc_record.drop(tdc_record[tdc_record[['USER_ID','ITEM_ID']].duplicated()].index, inplace=True)
-
+        tdc_record.drop_duplicates(inplace=True)
+        
         def check_users_items_1(df):
             # user side
             user_id = df.groupby('USER_ID').count()['ITEM_ID']
@@ -105,8 +106,6 @@ class SampleGenerator:
         tdc_record = pd.merge(tdc_record, item_id, on=['mid'], how='left')
         tdc_record['rating']=1.0
         tdc_record = tdc_record[['userId', 'itemId', 'rating', 'timestamp']]
-        
-        tdc_record.drop_duplicates(inplace=True)
 
         tdc_record['rating']=tdc_record['rating'].astype('int32')
         tdc_record['timestamp']=tdc_record['timestamp'].astype('float64')
@@ -115,12 +114,34 @@ class SampleGenerator:
         print('Range of itemId is [{}, {}]'.format(tdc_record.itemId.min(), tdc_record.itemId.max()))
         print(tdc_record.dtypes)
         
+        print(tdc_record.groupby('userId')['itemId'].count().sort_values(ascending=True).head())
+        
+        tdc_record=self.check_useless_data(tdc_record)
+        
         return tdc_record
     
     def usr_item_unique(self):
         num_itemid=len(self.ratings['itemId'].unique())
         num_userid=len(self.ratings['userId'].unique()) 
         return num_itemid, num_userid
+    
+    def check_useless_data(self, tdc_record):
+        df=tdc_record.groupby('userId').count()
+
+        user_id_drop= df[df['itemId']==1].index
+
+        drop_index=[]
+        for ind, row in tdc_record.iterrows():
+            if row['userId'] in user_id_drop:
+                drop_index.append(ind)
+
+        if len(drop_index)==0:
+            print('No useless data')
+        else:
+            print('found {} useless datapoints'.format(len(drop_index)))
+            tdc_record.drop(drop_index, inplace=True)
+            print('data cleaned!')
+        return tdc_record
 
     def _normalize(self, ratings):
         """
@@ -147,7 +168,8 @@ class SampleGenerator:
         ratings['rank_latest'] = ratings.groupby(['userId'])['timestamp'].rank(method='first', ascending=False)
         test = ratings[ratings['rank_latest'] == 1]
         train = ratings[ratings['rank_latest'] > 1]
-        #test what if i took this away
+        print('train user n unique: {}'.format(train['userId'].nunique()))
+        print('test user n unique: {}'.format(test['userId'].nunique()))
         assert train['userId'].nunique() == test['userId'].nunique()
         return train[['userId', 'itemId', 'rating']], test[['userId', 'itemId', 'rating']]
 
