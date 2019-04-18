@@ -89,7 +89,7 @@ class Engine:
         if backup:
             model_dir = self.config['model_dir'].format(alias, epoch_id, hit_ratio, ndcg)
         else:
-            model_dir = '{}_best.model'.format(alias)
+            model_dir = 'output/{}_best.model'.format(alias)
         save_checkpoint(self.model, model_dir)
 
     def full_save(self, alias):
@@ -97,5 +97,5 @@ class Engine:
         # for easier production
         best_model = self.model.load_state_dict('{}_best.model'.format(alias))
         best_model.eval()
-        torch.save(best_model, '{}_best.pth'.format(alias))
+        torch.save(best_model, 'output/{}_best.pth'.format(alias))
 
