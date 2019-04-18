@@ -121,10 +121,9 @@ def train_full_pipeline(data_path):
     print('Stage 3 - NeuMF Hit Rate: {:.2f}%'.format(neumf_best))
 
 # workflow
-parser = argparse.ArgumentParser()
-parser.add_argument("data_directory", help="state the directory of the csv data file", type=str)
-args = parser.parse_args()
+if __name__ == "__main__":  
+    parser = argparse.ArgumentParser()
+    parser.add_argument("data_directory", help="state the directory of the csv data file", type=str)
+    args = parser.parse_args()
 
-train_full_pipeline(args.data_directory)
-
-
+    train_full_pipeline(args.data_directory)
