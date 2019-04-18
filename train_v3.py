@@ -28,6 +28,9 @@ def train_model(model, config):
         if hit_ratio > best_hit:
             best_hit = hit_ratio
             engine.save(config['alias'], epoch, hit_ratio, ndcg, backup=False)
+    print('Outputing the Best model')
+    engine.full_save(config['alias'])
+    return best_hit
 
 #gmf configuration
 gmf_config = {'alias': 'gmf_factor8neg4-implict',
@@ -97,11 +100,14 @@ def train_full_pipeline(data_path):
 	## need to add asserts in SampleGenerator to check input format is correct
 	evaluate_data = sample_generator.evaluate_data
 	num_itemid, num_userid = sample_generator.usr_item_unique()
-	train_model(GMFEngine, gmf_config)
-	train_model(MLPEngine, mlp_config)
-	train_model(NeuMFEngine, neumf_config)
-	print('Done')
-
+	gmf_best = train_model(GMFEngine, gmf_config)
+	mlp_best = train_model(MLPEngine, mlp_config)
+	neumf_best = train_model(NeuMFEngine, neumf_config)
+	print('Done Training\n')
+  print('** Result Report **\n')
+  print('Stage 1 - GMF Hit Rate: {:.2f}%'.format(gmf_best))
+  print('Stage 2 - MLP Hit Rate: {:.2f}%'.format(mlp_best))
+  print('Stage 3 - NeuMF Hit Rate: {:.2f}%'.format(neumf_best))
 
 # workflow
 parser = argparse.ArgumentParser()

@@ -6,7 +6,7 @@ from utils import save_checkpoint, use_optimizer
 from metrics import MetronAtK
 
 
-class Engine(object):
+class Engine:
     """Meta Engine for training & evaluating NCF model
 
     Note: Subclass should implement self.model !
@@ -18,7 +18,8 @@ class Engine(object):
         # self._writer = SummaryWriter(log_dir='runs/{}'.format(config['alias']))  # tensorboard writer
         # self._writer.add_text('config', str(config), 0)
         self.opt = use_optimizer(self.model, config)
-        # explicit feedback
+        # explicit feedback <- use this when the data becomes more
+        # complicated
         # self.crit = torch.nn.MSELoss()
         # implicit feedback
         self.crit = torch.nn.BCELoss()
@@ -45,8 +46,8 @@ class Engine(object):
             rating = rating.float()
             loss = self.train_single_batch(user, item, rating)
             total_loss += loss
-            # if epoch_id % 10 == 0:
-                # print('[Training Epoch {}] Batch {}, Loss {}'.format(epoch_id, batch_id, loss))
+        # if epoch_id % 10 == 0:
+            # print('[Training Epoch {}] Batch {}, Loss {}'.format(epoch_id, batch_id, loss))
         print('[Training Stage Epoch {}] Loss {}'.format(epoch_id, loss))
 
         # self._writer.add_scalar('model/loss', total_loss, epoch_id)
@@ -90,3 +91,11 @@ class Engine(object):
         else:
             model_dir = '{}_best.model'.format(alias)
         save_checkpoint(self.model, model_dir)
+
+    def full_save(self, alias):
+        # load the best model from its state dictionary & save full model
+        # for easier production
+        best_model = self.model.load_state_dict('{}_best.model'.format(alias))
+        best_model.eval()
+        torch.save(best_model, '{}_best.pth'.format(alias))
+
