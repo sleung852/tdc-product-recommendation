@@ -9,6 +9,9 @@ import os
 import torch
 torch.cuda.is_available()
 
+import argparse
+
+# procedures on training each model
 def train_model(model, config):
     engine = model(config)
     best_hit = 0
@@ -26,67 +29,68 @@ def train_model(model, config):
             best_hit = hit_ratio
             engine.save(config['alias'], epoch, hit_ratio, ndcg, backup=False)
 
-	#gmf configuration
-	gmf_config = {'alias': 'gmf_factor8neg4-implict',
-	              'num_epoch': 200,
-	              'batch_size': 4,
-	              # 'optimizer': 'sgd',
-	              # 'sgd_lr': 1e-3,
-	              # 'sgd_momentum': 0.9,
-	              # 'optimizer': 'rmsprop',
-	              # 'rmsprop_lr': 1e-3,
-	              # 'rmsprop_alpha': 0.99,
-	              # 'rmsprop_momentum': 0,
-	              'optimizer': 'adam',
-	              'adam_lr': 1e-3,
-	              'num_users': num_userid,
-	              'num_items': num_itemid,
-	              'latent_dim': 8,
-	              'num_negative': 4,
-	              'l2_regularization': 0, # 0.01
-	              'use_cuda': True,
-	              'device_id': 0,
-	              'model_dir':'checkpoints/{}_Epoch{}_HR{:.4f}_NDCG{:.4f}.model'}
+#gmf configuration
+gmf_config = {'alias': 'gmf_factor8neg4-implict',
+              'num_epoch': 200,
+              'batch_size': 4,
+              # 'optimizer': 'sgd',
+              # 'sgd_lr': 1e-3,
+              # 'sgd_momentum': 0.9,
+              # 'optimizer': 'rmsprop',
+              # 'rmsprop_lr': 1e-3,
+              # 'rmsprop_alpha': 0.99,
+              # 'rmsprop_momentum': 0,
+              'optimizer': 'adam',
+              'adam_lr': 1e-3,
+              'num_users': num_userid,
+              'num_items': num_itemid,
+              'latent_dim': 8,
+              'num_negative': 4,
+              'l2_regularization': 0, # 0.01
+              'use_cuda': True,
+              'device_id': 0,
+              'model_dir':'checkpoints/{}_Epoch{}_HR{:.4f}_NDCG{:.4f}.model'}
 
-	# mlp configuration
-	mlp_config = {'alias': 'mlp_factor8neg4_bz256_166432168_pretrain_reg_0.0000001',
-	              'num_epoch': 200,
-	              'batch_size': 4,  # 1024,
-	              'optimizer': 'adam',
-	              'adam_lr': 1e-3,
-	              'num_users': num_userid,
-	              'num_items': num_itemid,
-	              'latent_dim': 8,
-	              'num_negative': 4,
-	              'layers': [16,64,32,16,8],  # layers[0] is the concat of latent user vector & latent item vector
-	              'l2_regularization': 0.0000001,  # MLP model is sensitive to hyper params
-	              'use_cuda': True,
-	              'device_id': 0,
-	              'pretrain': True,
-	              'pretrain_mf': 'gmf_factor8neg4-implict_best.model',
-	              'model_dir':'checkpoints/{}_Epoch{}_HR{:.4f}_NDCG{:.4f}.model'}
+# mlp configuration
+mlp_config = {'alias': 'mlp_factor8neg4_bz256_166432168_pretrain_reg_0.0000001',
+              'num_epoch': 200,
+              'batch_size': 4,  # 1024,
+              'optimizer': 'adam',
+              'adam_lr': 1e-3,
+              'num_users': num_userid,
+              'num_items': num_itemid,
+              'latent_dim': 8,
+              'num_negative': 4,
+              'layers': [16,64,32,16,8],  # layers[0] is the concat of latent user vector & latent item vector
+              'l2_regularization': 0.0000001,  # MLP model is sensitive to hyper params
+              'use_cuda': True,
+              'device_id': 0,
+              'pretrain': True,
+              'pretrain_mf': 'gmf_factor8neg4-implict_best.model',
+              'model_dir':'checkpoints/{}_Epoch{}_HR{:.4f}_NDCG{:.4f}.model'}
 
-	# neumf configuration
-	neumf_config = {'alias': 'pretrain_neumf_factor8neg4',
-	                'num_epoch': 200,
-	                'batch_size': 4,
-	                'optimizer': 'adam',
-	                'adam_lr': 1e-3,
-	                'num_users': num_userid,
-	              'num_items': num_itemid,
-	                'latent_dim_mf': 8,
-	                'latent_dim_mlp': 8,
-	                'num_negative': 4,
-	                'layers': [16,64,32,16,8],  # layers[0] is the concat of latent user vector & latent item vector
-	                'l2_regularization': 0.0000001,
-	                'use_cuda': True,
-	                'device_id': 0,
-	                'pretrain': True,
-	                'pretrain_mf': 'gmf_factor8neg4-implict_best.model',
-	                'pretrain_mlp': 'mlp_factor8neg4_bz256_166432168_pretrain_reg_0.0000001_best.model',
-	                'model_dir':'checkpoints/{}_Epoch{}_HR{:.4f}_NDCG{:.4f}.model'
-	                }
+# neumf configuration
+neumf_config = {'alias': 'pretrain_neumf_factor8neg4',
+                'num_epoch': 200,
+                'batch_size': 4,
+                'optimizer': 'adam',
+                'adam_lr': 1e-3,
+                'num_users': num_userid,
+              'num_items': num_itemid,
+                'latent_dim_mf': 8,
+                'latent_dim_mlp': 8,
+                'num_negative': 4,
+                'layers': [16,64,32,16,8],  # layers[0] is the concat of latent user vector & latent item vector
+                'l2_regularization': 0.0000001,
+                'use_cuda': True,
+                'device_id': 0,
+                'pretrain': True,
+                'pretrain_mf': 'gmf_factor8neg4-implict_best.model',
+                'pretrain_mlp': 'mlp_factor8neg4_bz256_166432168_pretrain_reg_0.0000001_best.model',
+                'model_dir':'checkpoints/{}_Epoch{}_HR{:.4f}_NDCG{:.4f}.model'
+                }
 
+# train all three models - the entire training pipeline
 def train_full_pipeline(data_path):
 	# DataLoader for training
 	sample_generator = SampleGenerator(data_path)
@@ -99,8 +103,11 @@ def train_full_pipeline(data_path):
 	print('Done')
 
 
-if __name__ == '__main__':
-	# add argparse 
-	train_full_pipeline
+# workflow
+parser = argparse.ArgumentParser()
+parser.add_argument("data_directory", help="state the directory of the csv data file", type=str)
+args = parser.parse_args()
+
+train_full_pipeline(args.data_directory)
 
 
