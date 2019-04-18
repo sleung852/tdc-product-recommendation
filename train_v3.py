@@ -95,19 +95,30 @@ neumf_config = {'alias': 'pretrain_neumf_factor8neg4',
 
 # train all three models - the entire training pipeline
 def train_full_pipeline(data_path):
-	# DataLoader for training
-	sample_generator = SampleGenerator(data_path)
-	## need to add asserts in SampleGenerator to check input format is correct
-	evaluate_data = sample_generator.evaluate_data
-	num_itemid, num_userid = sample_generator.usr_item_unique()
-	gmf_best = train_model(GMFEngine, gmf_config)
-	mlp_best = train_model(MLPEngine, mlp_config)
-	neumf_best = train_model(NeuMFEngine, neumf_config)
-	print('Done Training\n')
-  print('** Result Report **\n')
-  print('Stage 1 - GMF Hit Rate: {:.2f}%'.format(gmf_best))
-  print('Stage 2 - MLP Hit Rate: {:.2f}%'.format(mlp_best))
-  print('Stage 3 - NeuMF Hit Rate: {:.2f}%'.format(neumf_best))
+    print('Preparing Data...')
+    # DataLoader for training
+    sample_generator = SampleGenerator(data_path)
+    ## need to add asserts in SampleGenerator to check input format is correct
+    evaluate_data = sample_generator.evaluate_data
+    num_itemid, num_userid = sample_generator.usr_item_unique()
+    for config in [gmf_config, mlp_config, neumf_config]:
+        config['num_users'] = num_userid
+        config['num_items'] = num_itemid
+    print('Preparing Data... Done!')
+    print('Stage 1: Training GMF... ')
+    gmf_best = train_model(GMFEngine, gmf_config)
+    print('Stage 1: Training GMF... Done!')
+    print('Stage 2: Training MLP...')
+    mlp_best = train_model(MLPEngine, mlp_config)
+    print('Stage 2: Training MLP... Done!')
+    print('Stage 3: Training NeuMF... ')
+    neumf_best = train_model(NeuMFEngine, neumf_config)
+    print('Stage 3: Training NeuMF... Done! ')
+    print('All Training Completed\n')
+    print('** Result Report **\n')
+    print('Stage 1 - GMF Hit Rate: {:.2f}%'.format(gmf_best))
+    print('Stage 2 - MLP Hit Rate: {:.2f}%'.format(mlp_best))
+    print('Stage 3 - NeuMF Hit Rate: {:.2f}%'.format(neumf_best))
 
 # workflow
 parser = argparse.ArgumentParser()
